@@ -1,0 +1,30 @@
+services:
+  - type: web
+    name: invoice-nudge
+    runtime: docker
+    dockerfilePath: backend/Dockerfile
+    dockerContext: backend
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: invoice-nudge-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: RESEND_API_KEY
+        sync: false
+      - key: FROM_EMAIL
+        sync: false
+      - key: FRONTEND_URL
+        sync: false
+      - key: ALLOWED_ORIGINS
+        sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+
+databases:
+  - name: invoice-nudge-db
+    plan: free
+    databaseName: invoice_nudge
