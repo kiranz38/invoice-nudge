@@ -1,9 +1,9 @@
 import logging
 from datetime import datetime, timezone
 from sqlalchemy import select
-from src.database import get_session
+from src.database import async_session
 from src.models.models import Invoice, InvoiceStatus
-from src.services.email_service import send_notification_email
+from src.services.email_service import send_email
 
 logger = logging.getLogger(__name__)
 
@@ -12,7 +12,7 @@ scheduler = None
 
 async def send_reminders():
     """Check for overdue invoices and send reminder emails."""
-    async with get_session() as session:
+    async with async_session() as session:
         query = select(Invoice).where(
             Invoice.due_date < datetime.now(timezone.utc),
             Invoice.status == InvoiceStatus.PENDING.value,
@@ -20,10 +20,10 @@ async def send_reminders():
         invoices = (await session.scalars(query)).all()
         for invoice in invoices:
             try:
-                send_notification_email(
+                await send_email(
                     to=invoice.user_id,
                     subject=f"Invoice {invoice.id} is overdue",
-                    message=f"Your invoice of ${invoice.amount:.2f} was due on {invoice.due_date.strftime('%Y-%m-%d')}. Please follow up with your client.",
+                    html_body=f"<p>Your invoice of ${invoice.amount:.2f} was due on {invoice.due_date.strftime('%Y-%m-%d')}. Please follow up with your client.</p>",
                 )
                 logger.info("Sent reminder for invoice %s", invoice.id)
             except Exception as e:
@@ -32,7 +32,7 @@ async def send_reminders():
 
 async def cleanup_expired():
     """Mark overdue invoices."""
-    async with get_session() as session:
+    async with async_session() as session:
         query = select(Invoice).where(
             Invoice.due_date < datetime.now(timezone.utc),
             Invoice.status == InvoiceStatus.PENDING.value,

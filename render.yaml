@@ -16,7 +16,7 @@ services:
       - key: RESEND_API_KEY
         sync: false
       - key: FROM_EMAIL
-        value: noreply@aristocles.com.au
+        value: invoicenudge@jumproo.ai
       - key: FRONTEND_URL
         value: https://invoicenudge.aristocles.com.au
       - key: ALLOWED_ORIGINS

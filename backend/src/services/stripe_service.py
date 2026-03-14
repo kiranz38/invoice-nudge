@@ -43,7 +43,7 @@ class StripeService:
             )
         except ValueError:
             raise ValueError("Invalid payload")
-        except stripe.error.SignatureVerificationError:
+        except stripe.SignatureVerificationError:
             raise ValueError("Invalid signature")
 
         if event["type"] == "checkout.session.completed":

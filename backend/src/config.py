@@ -5,7 +5,7 @@ class Settings(BaseSettings):
     database_url: str = "postgresql+asyncpg://user:pass@localhost:5432/db"
     secret_key: str = "change-me"
     resend_api_key: str = ""
-    from_email: str = "noreply@invoicenudge.com"
+    from_email: str = "invoicenudge@jumproo.ai"
     frontend_url: str = "http://localhost:3000"
     allowed_origins: str = "http://localhost:3000"
     stripe_secret_key: str = ""

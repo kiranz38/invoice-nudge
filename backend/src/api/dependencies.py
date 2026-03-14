@@ -6,12 +6,7 @@ from src.models.user import User
 from src.services.auth_service import decode_token
 
 
-async def get_db() -> AsyncSession:
-    async with get_session() as session:
-        yield session
-
-
-async def get_current_user(authorization: str = Header(...), db: AsyncSession = Depends(get_db)):
+async def get_current_user(authorization: str = Header(...), db: AsyncSession = Depends(get_session)):
     token = authorization.replace("Bearer ", "")
     try:
         payload = decode_token(token)
@@ -23,7 +18,7 @@ async def get_current_user(authorization: str = Header(...), db: AsyncSession = 
     return user
 
 
-async def get_current_active_user(authorization: str = Header(...), db: AsyncSession = Depends(get_db)):
+async def get_current_active_user(authorization: str = Header(...), db: AsyncSession = Depends(get_session)):
     user = await get_current_user(authorization, db)
     if not user.is_active:
         raise HTTPException(403, "User is not active")
