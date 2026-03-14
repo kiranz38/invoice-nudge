@@ -1,4 +1,4 @@
-import React, { forwardRef, InputHTMLAttributes, TextareaHTMLAttributes } from 'react';
+import React, { forwardRef, InputHTMLAttributes, TextareaHTMLAttributes, SelectHTMLAttributes } from 'react';
 import clsx from 'clsx';
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
@@ -53,7 +53,13 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(({ label, error,
 });
 Textarea.displayName = 'Textarea';
 
-const Select = forwardRef<HTMLSelectElement, InputProps & { children?: React.ReactNode }>(
+interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
+  label?: string;
+  error?: string;
+  helperText?: string;
+}
+
+const Select = forwardRef<HTMLSelectElement, SelectProps & { children?: React.ReactNode }>(
   ({ label, error, helperText, className, children, ...props }, ref) => {
     return (
       <div className="mb-4">
