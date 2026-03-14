@@ -1,9 +1,11 @@
 services:
   - type: web
-    name: invoice-nudge
+    name: invoice-nudge-api
+    plan: free
     runtime: docker
     dockerfilePath: backend/Dockerfile
     dockerContext: backend
+    healthCheckPath: /health
     envVars:
       - key: DATABASE_URL
         fromDatabase:
@@ -14,17 +16,22 @@ services:
       - key: RESEND_API_KEY
         sync: false
       - key: FROM_EMAIL
-        sync: false
+        value: noreply@aristocles.com.au
       - key: FRONTEND_URL
-        sync: false
+        value: https://invoicenudge.aristocles.com.au
       - key: ALLOWED_ORIGINS
-        sync: false
+        value: https://invoicenudge.aristocles.com.au,https://www.invoicenudge.aristocles.com.au
       - key: STRIPE_SECRET_KEY
         sync: false
       - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: STRIPE_PRO_PRICE_ID
+        sync: false
+      - key: STRIPE_ENTERPRISE_PRICE_ID
         sync: false
 
 databases:
   - name: invoice-nudge-db
     plan: free
     databaseName: invoice_nudge
+    postgresMajorVersion: 16
