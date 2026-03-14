@@ -42,13 +42,19 @@ async def register_user(db: AsyncSession, data: RegisterRequest) -> User:
 
 async def login_user(db: AsyncSession, email: str, password: str) -> TokenResponse:
     user = await db.scalar(select(User).where(User.email == email))
-    if not user or not verify_password(password, user.password_hash):
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    if not user.password_hash:
+        raise HTTPException(status_code=400, detail="Please use Google Sign-In")
+    if not verify_password(password, user.password_hash):
         raise HTTPException(status_code=401, detail="Invalid credentials")
     token = create_token(user.id)
     return TokenResponse(access_token=token, token_type="bearer")
 
 
 async def change_password(db: AsyncSession, user: User, current_pw: str, new_pw: str) -> None:
+    if not user.password_hash:
+        raise HTTPException(status_code=400, detail="Please use Google Sign-In")
     if not verify_password(current_pw, user.password_hash):
         raise HTTPException(status_code=401, detail="Invalid current password")
     user.password_hash = hash_password(new_pw)

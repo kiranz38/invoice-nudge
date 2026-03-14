@@ -12,6 +12,8 @@ class Settings(BaseSettings):
     stripe_webhook_secret: str = ""
     stripe_pro_price_id: str = ""
     stripe_enterprise_price_id: str = ""
+    google_client_id: str = ""
+    google_client_secret: str = ""
     product_name: str = "InvoiceNudge"
     product_version: str = "1.0.0"
     model_config = {"env_file": ".env"}

@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 import { api, setToken } from '@/lib/api';
+import { GoogleSignInButton } from '@/components/ui/google-button';
 import Link from 'next/link';
 
 export default function LoginPage() {
@@ -11,6 +12,16 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const handleGoogleSuccess = useCallback(async (credential: string) => {
+    try {
+      const response = await api.post<{ access_token: string }>('/api/v1/auth/google', { token: credential });
+      setToken(response.access_token);
+      router.push('/dashboard');
+    } catch {
+      toast.error('Google sign-in failed. Please try again.');
+    }
+  }, [router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,6 +72,12 @@ export default function LoginPage() {
             {loading ? 'Signing in...' : 'Login'}
           </button>
         </form>
+        <div className="flex items-center gap-4 my-4">
+          <div className="flex-1 h-px bg-zinc-700" />
+          <span className="text-zinc-500 text-sm">or</span>
+          <div className="flex-1 h-px bg-zinc-700" />
+        </div>
+        <GoogleSignInButton onSuccess={handleGoogleSuccess} />
         <p className="mt-6 text-center text-sm text-zinc-400">
           Don&apos;t have an account?{' '}
           <Link href="/signup" className="text-[#5c7cfa] hover:underline">Sign up</Link>

@@ -1,12 +1,20 @@
+import secrets
 from fastapi import APIRouter, Depends, HTTPException, status
+from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from google.oauth2 import id_token
+from google.auth.transport import requests as google_requests
 from src.config import settings
 from src.database import get_session
 from src.models.user import User
 from src.schemas.auth import RegisterRequest, LoginRequest, TokenResponse, UserOut, UserUpdate, ChangePasswordRequest
 from src.services.auth_service import hash_password, create_token, verify_password
 from src.api.dependencies import get_current_user
+
+
+class GoogleAuthRequest(BaseModel):
+    token: str
 
 router = APIRouter(prefix="/auth")
 
@@ -37,8 +45,47 @@ async def login_user(
     db: AsyncSession = Depends(get_session),
 ):
     user = await db.scalar(select(User).where(User.email == login_request.email))
-    if not user or not verify_password(login_request.password, user.password_hash):
+    if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
+    if not user.password_hash:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Please use Google Sign-In")
+    if not verify_password(login_request.password, user.password_hash):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
+    token = create_token(user.id)
+    return TokenResponse(access_token=token, token_type="bearer")
+
+
+@router.post("/google", response_model=TokenResponse)
+async def google_auth(
+    google_request: GoogleAuthRequest,
+    db: AsyncSession = Depends(get_session),
+):
+    try:
+        idinfo = id_token.verify_oauth2_token(
+            google_request.token,
+            google_requests.Request(),
+            settings.google_client_id,
+        )
+    except ValueError:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid Google token")
+
+    email = idinfo.get("email")
+    name = idinfo.get("name")
+
+    if not email:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email not provided by Google")
+
+    user = await db.scalar(select(User).where(User.email == email))
+    if not user:
+        user = User(
+            email=email,
+            password_hash=None,
+            name=name,
+        )
+        db.add(user)
+        await db.commit()
+        await db.refresh(user)
+
     token = create_token(user.id)
     return TokenResponse(access_token=token, token_type="bearer")
 
@@ -69,6 +116,8 @@ async def change_user_password(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_session),
 ):
+    if not user.password_hash:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Please use Google Sign-In")
     if not verify_password(change_password_request.current_password, user.password_hash):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid current password")
     hashed_password = hash_password(change_password_request.new_password)

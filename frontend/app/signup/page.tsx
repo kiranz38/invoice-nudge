@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 import { api, setToken } from '@/lib/api';
+import { GoogleSignInButton } from '@/components/ui/google-button';
 import Link from 'next/link';
 
 export default function SignupPage() {
@@ -16,6 +17,16 @@ export default function SignupPage() {
     confirmPassword: '',
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const handleGoogleSuccess = useCallback(async (credential: string) => {
+    try {
+      const response = await api.post<{ access_token: string }>('/api/v1/auth/google', { token: credential });
+      setToken(response.access_token);
+      router.push('/dashboard');
+    } catch {
+      toast.error('Google sign-in failed. Please try again.');
+    }
+  }, [router]);
 
   const validate = () => {
     const errs: Record<string, string> = {};
@@ -79,6 +90,12 @@ export default function SignupPage() {
             {loading ? 'Creating account...' : 'Sign Up'}
           </button>
         </form>
+        <div className="flex items-center gap-4 my-4">
+          <div className="flex-1 h-px bg-zinc-700" />
+          <span className="text-zinc-500 text-sm">or</span>
+          <div className="flex-1 h-px bg-zinc-700" />
+        </div>
+        <GoogleSignInButton onSuccess={handleGoogleSuccess} />
         <p className="mt-4 text-center text-zinc-400">
           Already have an account?{' '}
           <Link href="/login" className="text-[#5c7cfa] hover:underline">Log in</Link>

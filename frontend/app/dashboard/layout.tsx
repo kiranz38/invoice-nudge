@@ -7,6 +7,7 @@ import { removeToken } from '@/lib/api';
 
 const navItems = [
   { href: '/dashboard', label: 'Overview' },
+  { href: '/dashboard/clients', label: 'Clients' },
   { href: '/dashboard/resources', label: 'Invoices' },
   { href: '/dashboard/settings', label: 'Settings' },
 ];

@@ -37,12 +37,12 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, footer 
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div ref={modalRef} className="bg-white rounded-xl shadow-xl max-w-md w-full mx-4 relative">
+      <div ref={modalRef} className="bg-zinc-800 border border-white/10 rounded-xl shadow-xl max-w-md w-full mx-4 relative">
         <div className="p-6">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-bold">{title}</h2>
+            <h2 className="text-xl font-bold text-white">{title}</h2>
             <button
-              className="text-gray-400 hover:text-gray-600 text-2xl leading-none"
+              className="text-zinc-400 hover:text-white text-2xl leading-none"
               onClick={onClose}
             >
               &times;
